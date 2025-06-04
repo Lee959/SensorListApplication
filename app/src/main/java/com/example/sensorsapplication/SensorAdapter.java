@@ -15,16 +15,13 @@ import com.example.sensorsapplication.constants.ProtocolConstants;
 import com.example.sensorsapplication.model.NodeInfo;
 import com.example.sensorsapplication.util.SensorDataParserUtil;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
+
 
 public class SensorAdapter extends ArrayAdapter<NodeInfo> {
 
     private Context context;
     private List<NodeInfo> deviceList;
-    private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
 
     public SensorAdapter(Context context, List<NodeInfo> deviceList) {
         super(context, R.layout.item_sensor, deviceList);
@@ -60,10 +57,6 @@ public class SensorAdapter extends ArrayAdapter<NodeInfo> {
 
         viewHolder.deviceName.setText(device.getNodeInfoStr(device.getSsrType()));
         viewHolder.deviceValue.setText(SensorDataParserUtil.parseSensorData(device.getSsrType(), device.getSsrStatus()));
-
-        if (viewHolder.lastUpdate != null) {
-            viewHolder.lastUpdate.setText(timeFormat.format(new Date()));
-        }
 
         return convertView;
     }
@@ -108,52 +101,5 @@ public class SensorAdapter extends ArrayAdapter<NodeInfo> {
         ImageView deviceIcon;
         TextView deviceName;
         TextView deviceValue;
-        TextView lastUpdate; // Added this field
-    }
-
-    /*
-     * Updates the data in the adapter with a new list of devices.
-     * @param newDeviceList The new list of NodeInfo objects to update the adapter with.
-     */
-    public void updateData(List<NodeInfo> newDeviceList) {
-        this.deviceList.clear();
-        this.deviceList.addAll(newDeviceList);
-        notifyDataSetChanged();
-    }
-
-    /*
-     * Adds a new device to the adapter.
-     * @param device The NodeInfo object representing the new device to be added.
-     */
-    public void addDevice(NodeInfo device) {
-        this.deviceList.add(device);
-        notifyDataSetChanged();
-    }
-
-    /*
-     * Updates an existing device in the adapter.
-     * @param updatedDevice The NodeInfo object representing the updated device.
-     */
-    public void updateDevice(NodeInfo updatedDevice) {
-        boolean found = false;
-        for (int i = 0; i < deviceList.size(); i++) {
-            NodeInfo currentDevice = deviceList.get(i);
-            // Check if the current device matches the updated device by node address or node address string
-            if (currentDevice.getNodeAddr() == updatedDevice.getNodeAddr() ||
-                    (currentDevice.getNodeAddrStr() != null && currentDevice.getNodeAddrStr().equals(updatedDevice.getNodeAddrStr()))) {
-                deviceList.set(i, updatedDevice);
-                found = true;
-                break;
-            }
-        }
-        if (!found) { // If not found, add it
-            deviceList.add(updatedDevice);
-        }
-        notifyDataSetChanged();
-    }
-
-    public void clearDevices() {
-        this.deviceList.clear();
-        notifyDataSetChanged();
     }
 }
