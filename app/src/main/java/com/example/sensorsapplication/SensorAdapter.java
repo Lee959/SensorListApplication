@@ -50,7 +50,6 @@ public class SensorAdapter extends ArrayAdapter<NodeInfo> {
             viewHolder.deviceIcon = convertView.findViewById(R.id.device_icon);
             viewHolder.deviceName = convertView.findViewById(R.id.device_name);
             viewHolder.deviceValue = convertView.findViewById(R.id.device_value);
-            viewHolder.lastUpdate = convertView.findViewById(R.id.last_update);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();

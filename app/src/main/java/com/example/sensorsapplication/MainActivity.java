@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.example.sensorsapplication.network.response.AutoReportResponse;
 import com.example.sensorsapplication.network.response.GetNodeDataResponse;
 import com.example.sensorsapplication.network.response.SetNodeStatusResponse;
+import com.example.sensorsapplication.util.SensorDataParserUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -131,6 +132,85 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
         }).start();
     }
 
+    /**
+     * 为所有传感器启动自动上报功能
+     */
+    private void startAutoReportForAllSensors() {
+        if (!isConnectedToServer || sensorList.isEmpty()) {
+            Log.w(TAG, "Cannot start auto report: not connected or no sensors");
+            return;
+        }
+
+        Log.d(TAG, "=== STARTING AUTO REPORT FOR ALL SENSORS ===");
+
+        new Thread(() -> {
+            // 为每个传感器启动自动上报，每1秒更新一次
+            for (NodeInfo sensor : sensorList) {
+                try {
+                    clientManager.startZigbeeAutoReport(
+                            ZIGBEE_NET_NAME,
+                            ZIGBEE_PAN_ID,
+                            ZIGBEE_CHANNEL_ID,
+                            sensor.getNodeAddrStr(),
+                            "1000" // 1000ms = 1秒间隔
+                    );
+
+                    Log.d(TAG, "Sent auto report request for sensor: " + sensor.getNodeAddrStr());
+
+                    // 避免同时发送太多请求，稍微延迟
+                    Thread.sleep(100);
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Error starting auto report for sensor " + sensor.getNodeAddrStr(), e);
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * 停止所有传感器的自动上报功能
+     */
+    private void stopAutoReportForAllSensors() {
+        if (!isConnectedToServer || sensorList.isEmpty()) {
+            Log.w(TAG, "Cannot stop auto report: not connected or no sensors");
+            return;
+        }
+
+        Log.d(TAG, "=== STOPPING AUTO REPORT FOR ALL SENSORS ===");
+
+        new Thread(() -> {
+            for (NodeInfo sensor : sensorList) {
+                try {
+                    clientManager.stopZigbeeAutoReport(
+                            ZIGBEE_NET_NAME,
+                            ZIGBEE_PAN_ID,
+                            ZIGBEE_CHANNEL_ID,
+                            sensor.getNodeAddrStr()
+                    );
+
+                    Log.d(TAG, "Sent stop auto report request for sensor: " + sensor.getNodeAddrStr());
+                    Thread.sleep(50);
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Error stopping auto report for sensor " + sensor.getNodeAddrStr(), e);
+                }
+            }
+        }).start();
+    }
+
+    private void updateDeviceValue(String nodeAddr, int newValue) {
+        for (NodeInfo sensor : sensorList) {
+            if (sensor.getNodeAddrStr().equals(nodeAddr)) {
+                sensor.setSsrStatus(newValue);
+
+                sensorAdapter.notifyDataSetChanged();
+
+                String formattedValue = SensorDataParserUtil.parseSensorData(sensor.getSsrType(), newValue);
+                Log.d(TAG, "Updated device " + nodeAddr + " value to: " + formattedValue);
+                break;
+            }
+        }
+    }
 
     /*
 
@@ -159,9 +239,6 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
         });
     }
 
-    /*
-     * Process network info response and populate spinner with Motor devices
-     */
     private void processNetworkInfoResponse(GetNetInfoResponse response) {
         if (response == null || response.getMsgInfo() == null || response.getMsgInfo().getChildList() == null) {
             Log.w(TAG, "Network info response is invalid or contains no child nodes.");
@@ -196,15 +273,22 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
                         netNode.getSsrStatus()
                 );
                 sensorList.add(sensor);
-                Log.d(TAG, "Added Motor: " + sensor.getNodeAddrStr() + " (Type: " + netNode.getSsrType() + ")");
+                Log.d(TAG, "Added Sensor: " + sensor.getNodeAddrStr() + " (Type: " + netNode.getSsrType() + ")");
             }
         }
 
-        Log.d(TAG, "Total Motor devices found: " + sensorList.size());
-
+        Log.d(TAG, "Total Sensor devices found: " + sensorList.size());
         sensorAdapter.notifyDataSetChanged();
 
-        Log.d(TAG, "Network info processing complete - " + sensorList.size() + " Motor devices");
+        // 自动为所有传感器启动自动上报
+        if (sensorList.size() > 0) {
+            // 延迟一下再启动自动上报，确保UI更新完成
+            mainThreadHandler.postDelayed(() -> {
+                startAutoReportForAllSensors();
+            }, 1000);
+        }
+
+        Log.d(TAG, "Network info processing complete - " + sensorList.size() + " Sensor devices");
     }
 
     @Override
@@ -215,6 +299,14 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
 
             try {
                 GetNodeDataResponse response = gson.fromJson(nodeDataJson, GetNodeDataResponse.class);
+
+                if (response != null && response.getOpt().equals(ProtocolConstants.Operation.GET_NODE_DATA)) {
+                    GetNodeDataResponse.MsgInfo msgInfo = response.getMsgInfo();
+                    if (msgInfo != null) {
+                        updateDeviceValue(msgInfo.getNodeAddrStr(), msgInfo.getNodeData());
+                    }
+                }
+
             } catch (JsonSyntaxException e) {
                 Log.e(TAG, "Error parsing NodeDataResponse JSON: " + nodeDataJson, e);
                 Toast.makeText(MainActivity.this, "Error parsing node data.", Toast.LENGTH_SHORT).show();
@@ -292,7 +384,27 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
     @Override
     public void onAutoReportDataReceived(String data) {
         Log.d(TAG, "Auto Report Data Received: " + data);
-        onNodeDataReceived(data);
+
+        // 处理自动上报的数据并更新UI
+        runOnUiThread(() -> {
+            try {
+                GetNodeDataResponse response = gson.fromJson(data, GetNodeDataResponse.class);
+                if (response != null && response.getMsgInfo() != null) {
+                    GetNodeDataResponse.MsgInfo msgInfo = response.getMsgInfo();
+
+                    // 更新传感器数据
+                    updateDeviceValue(msgInfo.getNodeAddrStr(), msgInfo.getNodeData());
+
+                    // 记录更新日志
+                    String formattedValue = SensorDataParserUtil.parseSensorData(msgInfo.getNodeType(), msgInfo.getNodeData());
+                    Log.d(TAG, "Auto report updated sensor " + msgInfo.getNodeAddrStr() + ": " + formattedValue);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing auto report data: " + data, e);
+                // 如果解析失败，尝试直接调用原有的处理方法
+                onNodeDataReceived(data);
+            }
+        });
     }
 
     @Override
@@ -315,6 +427,9 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
     @Override
     protected void onDestroy() {
         Log.d(TAG, "=== MainActivity onDestroy ===");
+
+        stopAutoReportForAllSensors();
+
         if (clientManager != null) clientManager.disconnect();
         if (mainThreadHandler != null) {
             mainThreadHandler.removeCallbacksAndMessages(null);
