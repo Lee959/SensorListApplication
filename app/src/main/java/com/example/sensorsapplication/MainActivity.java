@@ -8,6 +8,10 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.example.sensorsapplication.network.response.AutoReportResponse;
+import com.example.sensorsapplication.network.response.GetNodeDataResponse;
+import com.example.sensorsapplication.network.response.SetNodeStatusResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -60,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
         clientManager.setMessageCallback(this);
 
         snesorListView = findViewById(R.id.sensor_list);
+
 
         sensorList = new ArrayList<>();
         sensorAdapter = new SensorAdapter(this, sensorList);
@@ -203,19 +208,85 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
     }
 
     @Override
-    public void onNodeDataReceived(String nodeDataJson) { }
+    public void onNodeDataReceived(String nodeDataJson) {
+        runOnUiThread(() -> {
+            Log.d(TAG, "=== NODE DATA CALLBACK TRIGGERED ===");
+            Log.d(TAG, "Received: " + nodeDataJson);
+
+            try {
+                GetNodeDataResponse response = gson.fromJson(nodeDataJson, GetNodeDataResponse.class);
+            } catch (JsonSyntaxException e) {
+                Log.e(TAG, "Error parsing NodeDataResponse JSON: " + nodeDataJson, e);
+                Toast.makeText(MainActivity.this, "Error parsing node data.", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing node data: " + nodeDataJson, e);
+            }
+        });
+    }
 
     @Override
-    public void onStatusSetResult(String resultSetJson) { }
+    public void onStatusSetResult(String resultSetJson) {
+        runOnUiThread(() -> {
+            Log.d(TAG, "=== STATUS SET RESULT ===");
+            Log.d(TAG, "Result: " + resultSetJson);
+
+            try {
+                SetNodeStatusResponse response = gson.fromJson(resultSetJson, SetNodeStatusResponse.class);
+            } catch (JsonSyntaxException e) {
+                Log.e(TAG, "Error parsing SetNodeStatusResponse JSON: " + resultSetJson, e);
+                Toast.makeText(MainActivity.this, "Error parsing status update result.", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing status set result: " + resultSetJson, e);
+            }
+        });
+    }
 
     @Override
     public void onAutoReportStarted(String result) {
         Log.d(TAG, "Auto Report Started: " + result);
+        runOnUiThread(() -> {
+            try {
+                AutoReportResponse response = gson.fromJson(result, AutoReportResponse.class);
+                if (response != null && response.getMsgInfo() != null) {
+                    AutoReportResponse.MsgInfo msgInfo = response.getMsgInfo();
+                    if ("success".equals(msgInfo.getStatus())) {
+                        Toast.makeText(MainActivity.this, "自动上报已启动", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Auto report started successfully for node: " + msgInfo.getNodeAddrStr());
+                    } else {
+                        Toast.makeText(MainActivity.this, "启动自动上报失败", Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "Auto report start failed: " + msgInfo.getStatus());
+                    }
+                }
+            } catch (JsonSyntaxException e) {
+                Log.e(TAG, "Error parsing AutoReportResponse JSON: " + result, e);
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing auto report start result: " + result, e);
+            }
+        });
     }
 
     @Override
     public void onAutoReportStopped(String result) {
         Log.d(TAG, "Auto Report Stopped: " + result);
+        runOnUiThread(() -> {
+            try {
+                AutoReportResponse response = gson.fromJson(result, AutoReportResponse.class);
+                if (response != null && response.getMsgInfo() != null) {
+                    AutoReportResponse.MsgInfo msgInfo = response.getMsgInfo();
+                    if ("success".equals(msgInfo.getStatus())) {
+                        Toast.makeText(MainActivity.this, "自动上报已停止", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Auto report stopped successfully for node: " + msgInfo.getNodeAddrStr());
+                    } else {
+                        Toast.makeText(MainActivity.this, "停止自动上报失败", Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "Auto report stop failed: " + msgInfo.getStatus());
+                    }
+                }
+            } catch (JsonSyntaxException e) {
+                Log.e(TAG, "Error parsing AutoReportResponse JSON: " + result, e);
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing auto report stop result: " + result, e);
+            }
+        });
     }
 
     @Override

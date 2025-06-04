@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 
 import com.example.sensorsapplication.constants.ProtocolConstants;
 import com.example.sensorsapplication.model.NodeInfo;
+import com.example.sensorsapplication.util.SensorDataParserUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -59,7 +60,7 @@ public class SensorAdapter extends ArrayAdapter<NodeInfo> {
         setDeviceIcon(viewHolder.deviceIcon, device.getSsrType());
 
         viewHolder.deviceName.setText(device.getNodeInfoStr(device.getSsrType()));
-        viewHolder.deviceValue.setText(String.valueOf(device.getSsrStatus()));
+        viewHolder.deviceValue.setText(SensorDataParserUtil.parseSensorData(device.getSsrType(), device.getSsrStatus()));
 
         if (viewHolder.lastUpdate != null) {
             viewHolder.lastUpdate.setText(timeFormat.format(new Date()));
