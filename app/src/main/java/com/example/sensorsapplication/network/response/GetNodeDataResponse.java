@@ -35,6 +35,7 @@ public class GetNodeDataResponse {
         @SerializedName("node_type")
         private int nodeType;
 
+        //todo: change to String
         @SerializedName("node_data")
         private int nodeData;
 
