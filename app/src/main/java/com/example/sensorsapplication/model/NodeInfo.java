@@ -1,6 +1,6 @@
-package com.example.sensorsapplication.model;
+package com.example.threewayswitchapplication.model;
 
-import com.example.sensorsapplication.util.RgbColorUtil;
+import com.example.threewayswitchapplication.util.RgbColorUtil;
 import com.google.gson.annotations.SerializedName;
 
 /*
@@ -14,26 +14,37 @@ public class NodeInfo {
     @SerializedName("node_addr_str") private String nodeAddrStr;    //节点地址，十六进制字符串表示，便于查看与对照
     @SerializedName("node_role")     private String nodeRole;       //表示节点的网络类型，如"Enddevice"为zigbee终端
     @SerializedName("ssr_type")      private int ssrType;           //对应传感器/控制器的枚举编号，表示该节点连接的对应器件种类，具体请查看传感器控制器编号表
-    @SerializedName("ssr_status")    private int ssrStatus;         //表示该传感器/控制器的采集值/状态值
+    @SerializedName("ssr_status")    private String ssrStatus;         //表示该传感器/控制器的采集值/状态值
 
     // RGB Light Attribute
     private int red;
     private int green;
     private int blue;
 
+    // Temperature and Humidity Sensor Attribute
+    private int temperature;
+    private int humidity;
+
+    // Three-way Switch Attribute
+    private int switchState_channel1;
+    private int switchState_channel2;
+    private int switchState_channel3;
+
     // Constructor
-    public NodeInfo(int nodeAddr, String nodeRole, int ssrType, int ssrStatus) {
+    public NodeInfo(int nodeAddr, String nodeRole, int ssrType, String ssrStatus) {
         this.nodeAddr = nodeAddr;
         this.nodeAddrStr = String.format("0x%04X", nodeAddr); // Convert to hex string
         this.nodeRole = nodeRole;
         this.ssrType = ssrType;
         this.ssrStatus = ssrStatus;
 
-        if (this.ssrType == 5) { // 5 is the device type for RGB_LED
-            int[] rgbComponents = RgbColorUtil.extractRgbComponents(this.ssrStatus);
-            this.red = rgbComponents[0];
-            this.green = rgbComponents[1];
-            this.blue = rgbComponents[2];
+        switch (ssrType) {
+            case 5: // RGB_LED
+                int[] rgbComponents = RgbColorUtil.extractRgbComponents(ssrStatus);
+                this.red = rgbComponents[0];
+                this.green = rgbComponents[1];
+                this.blue = rgbComponents[2];
+                break;
         }
     }
 
@@ -68,11 +79,11 @@ public class NodeInfo {
         this.ssrType = ssrType;
     }
 
-    public int getSsrStatus() {
+    public String getSsrStatus() {
         return ssrStatus;
     }
 
-    public void setSsrStatus(int ssrStatus) {
+    public void setSsrStatus(String ssrStatus) {
         this.ssrStatus = ssrStatus;
         // change the function if target type if RGB Light
         if (this.ssrType == 5) { // 5 is the device type for RGB_LED

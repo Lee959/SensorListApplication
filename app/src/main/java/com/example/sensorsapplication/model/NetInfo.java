@@ -1,4 +1,4 @@
-package com.example.sensorsapplication.model;
+package com.example.threewayswitchapplication.model;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -22,7 +22,7 @@ public class NetInfo {
         @SerializedName("node_addr_str") private String nodeAddrStr;
         @SerializedName("node_role")     private String nodeRole;
         @SerializedName("ssr_type")      private int ssrType;
-        @SerializedName("ssr_status")    private int ssrStatus;
+        @SerializedName("ssr_status")    private String ssrStatus;
 
         // getters & setters
         public int getNodeAddr()               { return nodeAddr; }
@@ -37,8 +37,8 @@ public class NetInfo {
         public int getSsrType()                { return ssrType; }
         public void setSsrType(int v)          { this.ssrType = v; }
 
-        public int getSsrStatus()              { return ssrStatus; }
-        public void setSsrStatus(int v)        { this.ssrStatus = v; }
+        public String getSsrStatus()              { return ssrStatus; }
+        public void setSsrStatus(String v)        { this.ssrStatus = v; }
 
         public String getNodeInfoStr(int node_type) {
             String deviceInfo;

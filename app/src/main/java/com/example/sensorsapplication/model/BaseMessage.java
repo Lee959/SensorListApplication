@@ -1,4 +1,4 @@
-package com.example.sensorsapplication.model;
+package com.example.threewayswitchapplication.model;
 
 import com.google.gson.annotations.SerializedName;
 
