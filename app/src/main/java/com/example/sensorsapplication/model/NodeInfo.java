@@ -1,6 +1,6 @@
-package com.example.threewayswitchapplication.model;
+package com.example.sensorsapplication.model;
 
-import com.example.threewayswitchapplication.util.RgbColorUtil;
+import com.example.sensorsapplication.util.RgbColorUtil;
 import com.google.gson.annotations.SerializedName;
 
 /*
@@ -20,15 +20,6 @@ public class NodeInfo {
     private int red;
     private int green;
     private int blue;
-
-    // Temperature and Humidity Sensor Attribute
-    private int temperature;
-    private int humidity;
-
-    // Three-way Switch Attribute
-    private int switchState_channel1;
-    private int switchState_channel2;
-    private int switchState_channel3;
 
     // Constructor
     public NodeInfo(int nodeAddr, String nodeRole, int ssrType, String ssrStatus) {

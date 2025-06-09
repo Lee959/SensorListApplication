@@ -9,15 +9,15 @@ import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.sensorsapplication.model.NetInfo;
+import com.example.sensorsapplication.model.NodeInfo;
 import com.example.sensorsapplication.network.response.AutoReportResponse;
 import com.example.sensorsapplication.network.response.GetNodeDataResponse;
 import com.example.sensorsapplication.network.response.SetNodeStatusResponse;
-import com.example.sensorsapplication.util.SensorDataParserUtil;
+import com.example.sensorsapplication.util.SensorParserUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import com.example.sensorsapplication.model.NetInfo;
-import com.example.sensorsapplication.model.NodeInfo;
 import com.example.sensorsapplication.network.client.ClientManager;
 import com.example.sensorsapplication.network.response.GetNetInfoResponse;
 import com.example.sensorsapplication.constants.ProtocolConstants;
@@ -201,11 +201,11 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
     private void updateDeviceValue(String nodeAddr, int newValue) {
         for (NodeInfo sensor : sensorList) {
             if (sensor.getNodeAddrStr().equals(nodeAddr)) {
-                sensor.setSsrStatus(newValue);
+                sensor.setSsrStatus(String.valueOf(newValue));
 
                 sensorAdapter.notifyDataSetChanged();
 
-                String formattedValue = SensorDataParserUtil.parseSensorData(sensor.getSsrType(), newValue);
+                String formattedValue = SensorParserUtil.parseStatusData(sensor.getSsrType(), String.valueOf(newValue));
                 Log.d(TAG, "Updated device " + nodeAddr + " value to: " + formattedValue);
                 break;
             }
@@ -394,10 +394,6 @@ public class MainActivity extends AppCompatActivity implements MessageCallback {
 
                     // 更新传感器数据
                     updateDeviceValue(msgInfo.getNodeAddrStr(), msgInfo.getNodeData());
-
-                    // 记录更新日志
-                    String formattedValue = SensorDataParserUtil.parseSensorData(msgInfo.getNodeType(), msgInfo.getNodeData());
-                    Log.d(TAG, "Auto report updated sensor " + msgInfo.getNodeAddrStr() + ": " + formattedValue);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error processing auto report data: " + data, e);

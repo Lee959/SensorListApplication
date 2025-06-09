@@ -1,0 +1,52 @@
+{
+    "msg_info": {
+        "child_list": [
+            {
+                "node_addr": 28542,
+                "node_addr_str": "6f7e",
+                "node_role": "Enddevice",
+                "ssr_status": "100_90",
+                "ssr_type": 0
+            },
+            {
+                "node_addr": 34763,
+                "node_addr_str": "87cb",
+                "node_role": "Enddevice",
+                "ssr_status": 0,
+                "ssr_type": 1
+            },
+            {
+                "node_addr": 1633,
+                "node_addr_str": "0661",
+                "node_role": "Enddevice",
+                "ssr_status": 0,
+                "ssr_type": 2
+            },
+            {
+                "node_addr": 24514,
+                "node_addr_str": "5fc2",
+                "node_role": "Enddevice",
+                "ssr_status": 0,
+                "ssr_type": 4
+            },
+            {
+                "node_addr": 4165,
+                "node_addr_str": "1045",
+                "node_role": "Enddevice",
+                "ssr_status": 0,
+                "ssr_type": 6
+            }
+        ],
+        "node_addr": 0,
+        "node_addr_str": "0000",
+        "node_role": "Coordinator"
+    },
+    "msg_type": "query_ret",
+    "net_attr": {
+        "channel_id": "10",
+        "net_type": "Zigbee",
+        "pan_id": "1234",
+        "virtual_real_judg": "virtual"
+    },
+    "opt": "get_net_info"
+}

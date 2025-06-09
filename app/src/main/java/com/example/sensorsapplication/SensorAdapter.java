@@ -13,7 +13,7 @@ import androidx.annotation.Nullable;
 
 import com.example.sensorsapplication.constants.ProtocolConstants;
 import com.example.sensorsapplication.model.NodeInfo;
-import com.example.sensorsapplication.util.SensorDataParserUtil;
+import com.example.sensorsapplication.util.SensorParserUtil;
 
 import java.util.List;
 
@@ -56,7 +56,7 @@ public class SensorAdapter extends ArrayAdapter<NodeInfo> {
         setDeviceIcon(viewHolder.deviceIcon, device.getSsrType());
 
         viewHolder.deviceName.setText(device.getNodeInfoStr(device.getSsrType()));
-        viewHolder.deviceValue.setText(SensorDataParserUtil.parseSensorData(device.getSsrType(), device.getSsrStatus()));
+        viewHolder.deviceValue.setText(SensorParserUtil.parseStatusData(device.getSsrType(), device.getSsrStatus()));
 
         return convertView;
     }
