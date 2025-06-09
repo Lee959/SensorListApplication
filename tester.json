@@ -12,28 +12,28 @@
                 "node_addr": 34763,
                 "node_addr_str": "87cb",
                 "node_role": "Enddevice",
-                "ssr_status": 0,
+                "ssr_status": "1",
                 "ssr_type": 1
             },
             {
                 "node_addr": 1633,
                 "node_addr_str": "0661",
                 "node_role": "Enddevice",
-                "ssr_status": 0,
+                "ssr_status": "1",
                 "ssr_type": 2
             },
             {
                 "node_addr": 24514,
                 "node_addr_str": "5fc2",
                 "node_role": "Enddevice",
-                "ssr_status": 0,
+                "ssr_status": "1",
                 "ssr_type": 4
             },
             {
                 "node_addr": 4165,
                 "node_addr_str": "1045",
                 "node_role": "Enddevice",
-                "ssr_status": 0,
+                "ssr_status": "1",
                 "ssr_type": 6
             }
         ],
